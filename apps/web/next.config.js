@@ -11,6 +11,7 @@ const nextConfig = {
   // pattern for NTFS on Linux: builds crawl and `rm -rf .next` can hang.
   // Route build artifacts to tmpfs for local dev/build; Docker uses its own
   // native overlay FS so `distDir` there stays the default `.next`.
+  distDir: 'build',
   reactStrictMode: true,
   poweredByHeader: false,
   // The index artifact + corpus live outside apps/web; standalone tracing needs
