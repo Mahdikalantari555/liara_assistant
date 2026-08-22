@@ -1,0 +1,75 @@
+name: Re-index documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/public/llms/**'
+      - 'packages/indexing/**'
+      - '.github/workflows/reindex.yml'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Limit pages (smoke test)'
+        required: false
+        default: ''
+
+jobs:
+  index:
+    name: Build index + eval smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Prepare llama.cpp binary (indexing only)
+        run: |
+          curl -L -o /tmp/llama.zip \
+            https://github.com/ggerganov/llama.cpp/releases/download/b10184/llama-b10184-bin-ubuntu-x64.zip
+          unzip -q /tmp/llama.zip -d /tmp/llama
+          echo "/tmp/llama/llama-b10184" >> $GITHUB_PATH
+
+      - name: Start llama-server
+        run: |
+          llama-server \
+            -m /mnt/data/LocalAI/Models/Embeddings/bge-m3-Q4_K_M.gguf \
+            --embeddings --pooling cls \
+            --port 8089 --no-webui > /tmp/llama.log 2>&1 &
+          for i in $(seq 1 40); do
+            curl -sf http://127.0.0.1:8089/health && break
+            sleep 1
+          done
+
+      - name: Build index
+        env:
+          LLAMA_SERVER_URL: http://127.0.0.1:8089
+          EMBEDDING_TYPE: local
+          EMBEDDING_MODEL_PATH: /mnt/data/LocalAI/Models/Embeddings/bge-m3-Q4_K_M.gguf
+          CHROMA_DB_PATH: ./data/index
+          CHROMA_DB_COLLECTION: liara-docs
+        run: npm run index
+
+      - name: Eval smoke (optional)
+        env:
+          LLAMA_SERVER_URL: http://127.0.0.1:8089
+          EMBEDDING_TYPE: local
+          CHROMA_DB_PATH: ./data/index
+        run: npm run eval -- --limit 10 --strict || true
+
+      - name: Commit index artifact
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/index
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "chore: update documentation index [skip ci]"
+          git push origin HEAD:${GITHUB_REF#refs/heads/}

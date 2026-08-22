@@ -1,0 +1,21 @@
+{
+  "name": "liara-docs-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Liara Docs Bot — Persian RAG assistant over Liara documentation (specs/001-liara-docs-bot)",
+  "workspaces": [
+    "apps/web",
+    "packages/indexing"
+  ],
+  "scripts": {
+    "dev": "WATCHPACK_POLLING=true npm run dev -w apps/web",
+    "build": "npm run build -w packages/indexing && npm run build -w apps/web",
+    "start": "npm run start -w apps/web",
+    "index": "npm run index -w packages/indexing",
+    "eval": "npm run eval -w packages/indexing",
+    "lint": "npm run lint -w apps/web"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,63 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+apps/web/tmp/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# LocalAI models and heavy artifacts
+/mnt/data/LocalAI/
+LocalAI/
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# IDE
+.idea/
+.vscode/
+.opencode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+.nyc_output/
+
+# ChromaDB artifacts (if local)
+chroma-data/
+chroma.sqlite3
+
+# Evaluation dataset artifacts
+evaluation-results/
+
+# Runtime logs
+data/logs/
+
+# NOTE: data/index/ (precomputed embedding artifact) IS committed on purpose.
+# It is built by .github/workflows/reindex.yml and read by the runtime.
+# Runtime-only progress/resume state is not committed.
+data/index/indexing-progress.json

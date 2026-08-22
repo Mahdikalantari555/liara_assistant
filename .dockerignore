@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.agents
+.kilo
+.kilocode
+.specify
+openspec
+Resources
+data/logs
+*.log
+.env
+.env.*
+!.env.example

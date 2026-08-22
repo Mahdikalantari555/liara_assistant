@@ -1,0 +1,10 @@
+{
+  "name": "liara-docs",
+  "embeddingModel": "api:text-embedding-3-large",
+  "chunkSize": 512,
+  "chunkOverlap": 50,
+  "version": "2026-08-20T17-29-10-536Z",
+  "createdAt": "2026-08-20T17:36:32.364Z",
+  "dimensions": 3072,
+  "chunkCount": 4924
+}

@@ -1,0 +1,33 @@
+@theme {
+  /* Colors */
+  --color-text: #eeeeee;
+  --color-text-2: #ffffff;
+  --color-text-3: #111111;
+  --color-text-4: #bebebe;
+  --color-text-5: #222222;
+  --color-text-6: #b4bcd0;
+  --color-text-7: #8a8a8a;
+  --color-local-accent: #87fcc4;
+  --color-text-8: #cccccc;
+  --color-text-9: #00eac7;
+
+  /* Spacing */
+  --spacing-space-1: 10px;
+  --spacing-space-2: 20px;
+  --spacing-space-3: 15px;
+  --spacing-space-4: 5px;
+  --spacing-space-5: 3px;
+  --spacing-space-6: 30px;
+  --spacing-space-7: 40px;
+  --spacing-space-8: 50px;
+  --spacing-space-9: 25px;
+  --spacing-space-10: 70px;
+
+  /* Border Radius */
+  --radius-radius-1: 22px;
+  --radius-radius-2: 6px;
+  --radius-radius-3: 50px;
+  --radius-radius-4: 10px;
+  --radius-radius-5: 4px;
+
+}
