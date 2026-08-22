@@ -2,6 +2,9 @@
 
 پاسخ به سؤال‌های مستندات لیارا با بازیابی معنایی (RAG)، ذکر منبع و رابط کاربری فارسی.
 
+🎬 **دموی پروژه:**  
+https://uupload.ir/view/kooha-2026-08-22-15-34-18_xdac.mp4/
+
 **Branch:** `001-liara-docs-bot` | **Index:** 1,142 صفحه → 4,924 چانک | **Embedding:** `text-embedding-3-large` (3,072 بعد)
 
 ## قابلیت‌ها
@@ -14,6 +17,11 @@
 - **پیشنهاد پرسش:** ۲–۳ پرسش مرتبط بعد از هر پاسخ
 - **شاخص commit‌شده:** خود پروژه شامل Artifact شاخص است و نیازی به سرویس جداگانه برای Vector DB ندارد
 
+## دموی پروژه
+
+مشاهده ویدئوی دموی کامل:
+
+🎬 https://uupload.ir/view/kooha-2026-08-22-15-34-18_xdac.mp4/
 ## فناوری‌ها
 
 | لایه | ابزار |
@@ -166,3 +174,5 @@ npm run selfcheck       # تست‌های pure-logic (11 چک)
 ## لایسنس
 
 Proprietary — Liara Cloud
+
+> 🎬 **Project Demo:** https://uupload.ir/view/kooha-2026-08-22-15-34-18_xdac.mp4/
