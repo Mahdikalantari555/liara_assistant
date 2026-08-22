@@ -69,6 +69,7 @@ specs/001-liara-docs-bot/  # spec, plan, tasks, contracts, data-model, quickstar
 specs/archive/             # snapshot آرشیو spec اولیه
 ```
 
+
 ## پیش‌نیازها
 
 - Node.js ≥ 18
