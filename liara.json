@@ -1,0 +1,9 @@
+{
+  "app": "docsassistant",
+  "port": 3000,
+  "team-id": "6a86aee055e397b04bf00cec",
+  "build": {
+    "location": "iran"
+  },
+  "disks": []
+}
