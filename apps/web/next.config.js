@@ -6,9 +6,9 @@
 // still satisfies FR-018/FR-019/FR-029. See infra/liara/README.md.
 const nextConfig = {
   output: 'standalone',
-  // NTFS workaround, opt-in for local dev only (root `dev` script sets
-  // NEXT_DIST_DIR=/tmp/...). Deploy builds keep the default `.next`.
-  distDir: process.env.NEXT_DIST_DIR || '.next',
+  // Default build output. (The old /tmp/liara-docs-bot-next override broke
+  // the production `standalone` type-check; deploy builds use `.next`.)
+  distDir: '.next',
   reactStrictMode: true,
   poweredByHeader: false,
   // The index artifact + corpus live outside apps/web; standalone tracing needs
