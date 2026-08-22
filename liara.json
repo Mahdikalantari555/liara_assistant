@@ -2,7 +2,6 @@
   "port": 3000,
   "build": {
     "location": "iran",
-    "dockerfile": "./apps/web/Dockerfile",
     "cache": false
   },
   "disks": []
