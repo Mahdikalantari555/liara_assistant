@@ -4,5 +4,8 @@
     "location": "iran",
     "cache": false
   },
+  "next": {
+    "mirror": false
+  },
   "disks": []
 }

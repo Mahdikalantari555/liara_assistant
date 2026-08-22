@@ -6,11 +6,8 @@
 // still satisfies FR-018/FR-019/FR-029. See infra/liara/README.md.
 const nextConfig = {
   output: 'standalone',
-  // `/media/E` is NTFS (`ntfs3`). Next’s `.next` has thousands of tiny files
-  // (webpack chunks, static assets, traces), which is the worst-case I/O
-  // pattern for NTFS on Linux: builds crawl and `rm -rf .next` can hang.
-  // Route build artifacts to tmpfs for local dev/build; Docker uses its own
-  // native overlay FS so `distDir` there stays the default `.next`.
+  // NTFS workaround, opt-in for local dev only (root `dev` script sets
+  // NEXT_DIST_DIR=/tmp/...). Deploy builds keep the default `.next`.
   distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,

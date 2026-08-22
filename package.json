@@ -8,12 +8,17 @@
     "packages/indexing"
   ],
   "scripts": {
-    "dev": "WATCHPACK_POLLING=true npm run dev -w apps/web",
+    "dev": "WATCHPACK_POLLING=true NEXT_DIST_DIR=/tmp/liara-docs-bot-next npm run dev -w apps/web",
     "build": "npm run build -w packages/indexing && npm run build -w apps/web",
     "start": "npm run start -w apps/web",
     "index": "npm run index -w packages/indexing",
     "eval": "npm run eval -w packages/indexing",
     "lint": "npm run lint -w apps/web"
+  },
+  "dependencies": {
+    "next": "14.2.23",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "engines": {
     "node": ">=18"
