@@ -26,6 +26,69 @@ function getStore(): VectorStore {
   return store;
 }
 
+const isLinkDump = (c: { sectionTitle?: string }): boolean =>
+  (c.sectionTitle ?? '').trim().toLowerCase() === 'all links';
+
+const keep = <T extends { score: number; sectionTitle?: string }>(chunks: T[], minScore = 0): T[] =>
+  chunks.filter((c) => c.score >= Math.max(minScore, Number.EPSILON) && !isLinkDump(c));
+
+/**
+ * Offline BM25 search over the committed chunks. Prefers a prebuilt
+ * `bm25.json`; if that is missing it builds the index directly from
+ * `chunks.json`, so retrieval still works when the embedding provider is
+ * unavailable or misconfigured.
+ */
+async function bm25Search(
+  query: string,
+  indexRoot: string,
+  topK: number,
+): Promise<{ chunks: RetrievedChunk[]; topScore: number; miss: boolean }> {
+  const version = await readCurrent(indexRoot);
+  if (!version) throw new Error('no index published');
+  const { readBm25Artifact, buildBm25Index } = await import('@liara-docs-bot/indexing');
+
+  type ChunkRow = {
+    chunkId: string;
+    content: string;
+    tokenCount: number;
+    sourceUrl: string;
+    pageTitle: string;
+    sectionTitle: string;
+  };
+  let rows: ChunkRow[];
+  try {
+    const artifact = await readBm25Artifact(indexRoot, version);
+    rows = artifact.chunks as ChunkRow[];
+  } catch {
+    const fs = await import('fs/promises');
+    const p = await import('path');
+    const raw = await fs.readFile(p.join(indexRoot, version, 'chunks.json'), 'utf8');
+    rows = JSON.parse(raw) as ChunkRow[];
+  }
+
+  const bm25 = buildBm25Index(
+    rows.map((c) => ({ chunkId: c.chunkId, content: c.content, tokenCount: c.tokenCount })),
+  );
+  const hits = await bm25.search(query, topK);
+  const byId = new Map(rows.map((c) => [c.chunkId, c]));
+  const chunks = hits.map(
+    (h) =>
+      ({
+        ...(byId.get(h.chunkId) ?? {
+          chunkId: h.chunkId,
+          content: '',
+          sourceUrl: '',
+          pageTitle: '',
+          sectionTitle: '',
+          tokenCount: 0,
+        }),
+        score: h.score,
+      }) as RetrievedChunk,
+  );
+  const relevant = keep(chunks);
+  return { chunks, topScore: chunks[0]?.score ?? 0, miss: relevant.length === 0 };
+}
+
 export interface RetrievalResult {
   chunks: RetrievedChunk[];
   /** Chunks above the similarity threshold; empty means a retrieval miss. */
@@ -39,34 +102,11 @@ export async function retrieve(question: string, topic?: string): Promise<Retrie
   const { retrieval, index } = getConfig();
   const query = topic ? `${topic}\n${question}` : question;
 
-  // The llms corpus carries an auto-generated "all links" appendix per page
-  // (a navigation link dump, 1139 chunks in the current index). It matches
-  // almost any query and makes useless citations. Filter it at query time;
-  // ponytail: drop the section during chunking on the next full reindex.
-  const isLinkDump = (c: { sectionTitle?: string }) =>
-    (c.sectionTitle ?? '').trim().toLowerCase() === 'all links';
-  const keep = <T extends { score: number; sectionTitle?: string }>(chunks: T[], minScore = 0): T[] =>
-    chunks.filter((c) => c.score >= Math.max(minScore, Number.EPSILON) && !isLinkDump(c));
-
   // BM25 fallback path: no embedding service needed.
   if (retrieval.mode === 'bm25' || retrieval.mode === 'bm25-graph') {
     try {
-      const version = await readCurrent(index.root);
-      if (!version) throw new Error('no bm25 index');
-      const { readBm25Artifact } = await import('@liara-docs-bot/indexing');
-      const { buildBm25Index } = await import('@liara-docs-bot/indexing');
-      const artifact = await readBm25Artifact(index.root, version);
-      const bm25 = buildBm25Index(artifact.chunks.map((c) => ({ chunkId: c.chunkId, content: c.content, tokenCount: c.tokenCount })));
-      const hits = await bm25.search(query, retrieval.topK);
-      const byId = new Map(artifact.chunks.map((c) => [c.chunkId, c]));
-      const chunks = hits.map((h) => ({ ...(byId.get(h.chunkId) ?? { chunkId: h.chunkId, content: '', sourceUrl: '', pageTitle: '', sectionTitle: '', tokenCount: 0 }), score: h.score }));
-      const relevant = keep(chunks);
-      return {
-        chunks,
-        relevant,
-        topScore: chunks[0]?.score ?? 0,
-        miss: relevant.length === 0,
-      };
+      const r = await bm25Search(query, index.root, retrieval.topK);
+      return { chunks: r.chunks, relevant: keep(r.chunks), topScore: r.topScore, miss: r.miss };
     } catch {
       // Fall through to embedding path if BM25 index is missing.
     }
@@ -83,25 +123,12 @@ export async function retrieve(question: string, topic?: string): Promise<Retrie
       topScore: chunks[0]?.score ?? 0,
       miss: relevant.length === 0,
     };
-  } catch {
+  } catch (err) {
     // Last resort: BM25 if embedding failed.
+    console.error('[retrieval] embedding path failed, falling back to BM25:', (err as Error).message);
     try {
-      const version = await readCurrent(index.root);
-      if (!version) throw new Error('no index');
-      const { readBm25Artifact } = await import('@liara-docs-bot/indexing');
-      const { buildBm25Index } = await import('@liara-docs-bot/indexing');
-      const artifact = await readBm25Artifact(index.root, version);
-      const bm25 = buildBm25Index(artifact.chunks.map((c) => ({ chunkId: c.chunkId, content: c.content, tokenCount: c.tokenCount })));
-      const hits = await bm25.search(query, retrieval.topK);
-      const byId = new Map(artifact.chunks.map((c) => [c.chunkId, c]));
-      const chunks = hits.map((h) => ({ ...(byId.get(h.chunkId) ?? { chunkId: h.chunkId, content: '', sourceUrl: '', pageTitle: '', sectionTitle: '', tokenCount: 0 }), score: h.score }));
-      const relevant = keep(chunks);
-      return {
-        chunks,
-        relevant,
-        topScore: chunks[0]?.score ?? 0,
-        miss: relevant.length === 0,
-      };
+      const r = await bm25Search(query, index.root, retrieval.topK);
+      return { chunks: r.chunks, relevant: keep(r.chunks), topScore: r.topScore, miss: r.miss };
     } catch {
       return { chunks: [], relevant: [], topScore: 0, miss: true };
     }
