@@ -5,6 +5,9 @@
 🎬 **دموی پروژه:**  
 https://uupload.ir/view/kooha-2026-08-22-15-34-18_xdac.mp4/
 
+**دیپلوی پروژه:**  
+https://docsassistant.liara.run/
+
 **Branch:** `001-liara-docs-bot` | **Index:** 1,142 صفحه → 4,924 چانک | **Embedding:** `text-embedding-3-large` (3,072 بعد)
 
 ## قابلیت‌ها
